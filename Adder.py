@@ -29,7 +29,8 @@ async def add_member_to_group(client, target_group_entity, user_to_add):
     except Exception as e:
         logging.error("[!] Unexpected Error: {}".format(e))
 
-async def main():    
+async def main():   
+    banner()
     cpass = configparser.RawConfigParser()
     cpass.read('config.data')
     try:
