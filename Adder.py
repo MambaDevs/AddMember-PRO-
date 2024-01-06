@@ -1,19 +1,15 @@
-#!/bin/env python3
-import csv, logging, os, random, sys, time, asyncio
+import csv, logging, os, random, sys, asyncio, configparser
 from telethon.sync import TelegramClient
 from telethon.tl.functions.channels import InviteToChannelRequest
 from telethon.tl.functions.messages import GetDialogsRequest
 from telethon.tl.types import InputPeerEmpty, InputPeerChannel, InputPeerUser
 from telethon.errors.rpcerrorlist import PeerFloodError, UserPrivacyRestrictedError
-import configparser
 
 logging.basicConfig(level=logging.INFO)
-
 async def authenticate_user(client, phone):
     if not await client.is_user_authorized():
         await client.send_code_request(phone)
         os.system('clear')
-        banner()
         await client.sign_in(phone, input("[+] Enter the code: "))
 
 async def get_user_input_entity(client, username):
@@ -33,24 +29,18 @@ async def add_member_to_group(client, target_group_entity, user_to_add):
     except Exception as e:
         logging.error("[!] Unexpected Error: {}".format(e))
 
-async def main():
-    banner()
-    
+async def main():    
     cpass = configparser.RawConfigParser()
     cpass.read('config.data')
-
     try:
         api_id = cpass['cred']['id']
         api_hash = cpass['cred']['hash']
         phone = cpass['cred']['phone']
         client = TelegramClient(phone, api_id, api_hash)
         await client.start()
-
         await authenticate_user(client, phone)
-
         input_file = sys.argv[1]
         users = []
-
         with open(input_file, encoding='UTF-8') as f:
             rows = csv.reader(f, delimiter=",", lineterminator="\n")
             next(rows, None)
@@ -62,12 +52,10 @@ async def main():
                     'name': row[3]
                 }
                 users.append(user)
-
         chats = []
         last_date = None
         chunk_size = 200
         groups = []
-
         result = await client(GetDialogsRequest(
             offset_date=last_date,
             offset_id=0,
@@ -113,7 +101,7 @@ async def main():
 
             if user_to_add:
                 await add_member_to_group(client, target_group_entity, user_to_add)
-
+    except Exception as e :
+        print(f"error:\n{e}")
 if __name__ == '__main__':
     asyncio.run(main())
-
